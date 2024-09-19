@@ -1,10 +1,14 @@
 {
     "name": "@andre-hctulc/xfetch",
-    "version": "0.0.1",
+    "version": "1.0.1",
     "description": "Extended fetch",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "tc": "tsc --noEmit",
+        "tc:watch": "tsc -w --noEmit",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deploy": "npm run tc && npm publish"
     },
     "author": "André Thomas",
     "license": "ISC",

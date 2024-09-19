@@ -6,8 +6,9 @@
         "forceConsistentCasingInFileNames": true,
         "allowSyntheticDefaultImports": true,
         "outDir": "./dist",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "declaration": true
     },
-    "include": ["index.ts"],
+    "include": ["src"],
     "exclude": ["node_modules"]
 }
