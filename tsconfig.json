@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "ES2022",
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        "outDir": "./dist",
+        "skipLibCheck": true
+    },
+    "include": ["index.ts"],
+    "exclude": ["node_modules"]
+}

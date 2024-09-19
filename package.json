@@ -1,0 +1,18 @@
+{
+    "name": "@andre-hctulc/xfetch",
+    "version": "0.0.1",
+    "description": "Extended fetch",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc"
+    },
+    "author": "André Thomas",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^22.5.5"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/andre-hctulc/xfetch.git"
+    }
+}
