@@ -3,6 +3,7 @@ export interface XRequestInit<B = unknown> {
     baseUrl?: string;
     queryParams?: Record<string, any> | URLSearchParams;
     headers?: HeadersInit;
+    onError?: (error: FetchError) => void;
     body?: B;
     /** Control cookies and Authorization headers */
     credentials?: RequestCredentials;
@@ -11,6 +12,10 @@ export interface XRequestInit<B = unknown> {
     /** Control CORS */
     cors?: RequestMode;
     priority?: RequestPriority;
+    /**
+     * If true, the response will be returned as is, without parsing it.
+     */
+    raw?: boolean;
     /**
      * In some cases browsers might block redirect. For example after form submission.
      * Set this option to true, to follow every redirect response.
@@ -40,14 +45,16 @@ export interface XRequestInit<B = unknown> {
 }
 
 export class FetchError extends Error {
-    constructor(
-        message: string,
-        readonly response: Response | null,
-        readonly origin: any
-    ) {
+    constructor(message: string, readonly response: Response | null, readonly origin: any) {
         super(
-            `HTTP error ${response?.status ? "(" + response.status + ")" : ""}${response ? " at '" + response.url + "'" : ""} - ${message}`
+            `HTTP error ${response?.status ? "(" + response.status + ")" : ""}${
+                response ? " at '" + response.url + "'" : ""
+            } - ${message}`
         );
+    }
+
+    static is(err: unknown, status?: number): err is FetchError {
+        return err instanceof FetchError && (status == undefined || err.response?.status === status);
     }
 }
 
@@ -60,6 +67,10 @@ export async function xfetch<R = unknown, B = unknown>(
 ): Promise<R> {
     // -- Prepare request
 
+    const throwErr: (error: FetchError) => never = (error: FetchError) => {
+        if (requestInit.onError) requestInit.onError(error);
+        throw error;
+    };
     const method = (requestInit.method || "GET").toUpperCase();
     const url = xfetch.url(path, { ...requestInit, method });
     const headers = new Headers(requestInit.headers || {});
@@ -97,7 +108,7 @@ export async function xfetch<R = unknown, B = unknown>(
                     body = JSON.stringify(requestInit.body);
                 }
             } catch (err) {
-                throw new FetchError("Failed to serialize body", null, err);
+                throwErr(new FetchError("Failed to serialize body", null, err));
             }
         }
     }
@@ -144,7 +155,7 @@ export async function xfetch<R = unknown, B = unknown>(
             priority: requestInit.priority,
         });
     } catch (err) {
-        throw new FetchError("Fetch failed", null, err);
+        throwErr(new FetchError("Fetch failed", null, err));
     }
 
     if (!response.ok) {
@@ -153,7 +164,7 @@ export async function xfetch<R = unknown, B = unknown>(
             return undefined as R;
         }
 
-        throw new FetchError("Response not ok", response, undefined);
+        throwErr(new FetchError("Response not ok", response, undefined));
     }
 
     // -- Force redirect
@@ -166,10 +177,12 @@ export async function xfetch<R = unknown, B = unknown>(
         const location = response.headers.get("Location") ?? response.url;
         // force reroute in browser
         if (typeof window !== "undefined") window.location.href = location;
-        throw new FetchError("Redirected", response, location);
+        throwErr(new FetchError("Redirected", response, location));
     }
 
     // -- Parse response
+
+    if (requestInit.raw) return response as unknown as R;
 
     let data: any;
     const resContentType = response.headers.get("content-type");
@@ -188,7 +201,7 @@ export async function xfetch<R = unknown, B = unknown>(
             }
         }
     } catch (err) {
-        throw new FetchError("Failed to parse response", response, err);
+        throwErr(new FetchError("Failed to parse response", response, err));
     }
 
     return data;
