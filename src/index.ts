@@ -217,21 +217,21 @@ xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
     return `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
 };
 
-export interface MutationInit<B> extends Omit<XRequestInit<B>, "body"> {}
+export interface MutationInit extends Omit<XRequestInit, "body"> {}
 
 export async function xmutate<R, B>(
     method: string,
     path: string,
-    body: any,
-    mutationInit: MutationInit<B> = {}
+    body: B,
+    mutationInit: MutationInit = {}
 ): Promise<R> {
     const response = await xfetch<R, B>(path, { ...mutationInit, body, method });
     return response;
 }
 
-xmutate.post = <R, B>(path: string, body: any, mutationInit: Omit<MutationInit<B>, "method"> = {}) =>
+xmutate.post = <R, B>(path: string, body: B, mutationInit: Omit<MutationInit, "method"> = {}) =>
     xmutate<R, B>("POST", path, body, mutationInit);
-xmutate.put = <R, B>(path: string, body: any, mutationInit: Omit<MutationInit<B>, "method"> = {}) =>
+xmutate.put = <R, B>(path: string, body: B, mutationInit: Omit<MutationInit, "method"> = {}) =>
     xmutate<R, B>("PUT", path, body, mutationInit);
-xmutate.del = <R, B>(path: string, body: any, mutationInit: Omit<MutationInit<B>, "method"> = {}) =>
+xmutate.del = <R, B>(path: string, body: B, mutationInit: Omit<MutationInit, "method"> = {}) =>
     xmutate<R, B>("DELETE", path, body, mutationInit);
