@@ -2,6 +2,9 @@ export interface XRequestInit<B = unknown> {
     method?: string;
     baseUrl?: string;
     queryParams?: Record<string, any> | URLSearchParams;
+    /**
+     * Setting the _Content-Type_ header will disable default body parsing.
+     */
     headers?: HeadersInit;
     onError?: (error: FetchError) => void;
     body?: B;
