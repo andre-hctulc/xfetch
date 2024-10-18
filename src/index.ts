@@ -48,10 +48,10 @@ export interface XRequestInit<B = unknown> {
 }
 
 export class FetchError extends Error {
-    constructor(message: string, readonly response: Response | null, readonly origin: any) {
+    constructor(method: string, message: string, readonly response: Response | null, readonly origin: any) {
         super(
-            `HTTP error ${response?.status ? "(" + response.status + ")" : ""}${
-                response ? " at '" + response.url + "'" : ""
+            `HTTP Error ${response?.status ? " (" + response.status + ")" : ""} ${
+                response ? " at " + method.toUpperCase() + " '" + response.url + "'" : ""
             } - ${message}`
         );
     }
@@ -111,7 +111,7 @@ export async function xfetch<R = unknown, B = unknown>(
                     body = JSON.stringify(requestInit.body);
                 }
             } catch (err) {
-                throwErr(new FetchError("Failed to serialize body", null, err));
+                throwErr(new FetchError(method, "Failed to serialize body", null, err));
             }
         }
     }
@@ -158,7 +158,7 @@ export async function xfetch<R = unknown, B = unknown>(
             priority: requestInit.priority,
         });
     } catch (err) {
-        throwErr(new FetchError("Fetch failed", null, err));
+        throwErr(new FetchError(method, "Fetch failed", null, err));
     }
 
     if (!response.ok) {
@@ -167,7 +167,7 @@ export async function xfetch<R = unknown, B = unknown>(
             return undefined as R;
         }
 
-        throwErr(new FetchError("Response not ok", response, undefined));
+        throwErr(new FetchError(method, "Response not ok", response, undefined));
     }
 
     // -- Force redirect
@@ -180,7 +180,7 @@ export async function xfetch<R = unknown, B = unknown>(
         const location = response.headers.get("Location") ?? response.url;
         // force reroute in browser
         if (typeof window !== "undefined") window.location.href = location;
-        throwErr(new FetchError("Redirected", response, location));
+        throwErr(new FetchError(method, "Redirected", response, location));
     }
 
     // -- Parse response
@@ -204,7 +204,7 @@ export async function xfetch<R = unknown, B = unknown>(
             }
         }
     } catch (err) {
-        throwErr(new FetchError("Failed to parse response", response, err));
+        throwErr(new FetchError(method, "Failed to parse response", response, err));
     }
 
     return data;
