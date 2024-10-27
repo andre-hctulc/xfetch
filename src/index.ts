@@ -25,9 +25,9 @@ export interface XRequestInit<B = unknown> {
      *  */
     forceFollowRedirects?: boolean;
     /**
-     * Will treat opaque responses as ok and produce undefined as response data.
+     * Treat opaque responses as ok and produce undefined as response data.
      */
-    optimistic?: boolean;
+    opaqueOk?: boolean;
     /**
      * Include a CSRF token in the request.
      * */
@@ -50,8 +50,8 @@ export interface XRequestInit<B = unknown> {
 export class FetchError extends Error {
     constructor(method: string, message: string, readonly response: Response | null, readonly origin: any) {
         super(
-            `HTTP Error ${response?.status ? " (" + response.status + ")" : ""} ${
-                response ? " at " + method.toUpperCase() + " '" + response.url + "'" : ""
+            `HTTP Error ${response?.status ? "(" + response.status + ")" : ""}${
+                response ? " at " + method.toUpperCase() + " " + response.url : ""
             } - ${message}`
         );
     }
@@ -163,7 +163,7 @@ export async function xfetch<R = unknown, B = unknown>(
 
     if (!response.ok) {
         // opaque responses will have response.ok = false!
-        if (requestInit.optimistic && response.type === "opaque") {
+        if (requestInit.opaqueOk && response.type === "opaque") {
             return undefined as R;
         }
 
