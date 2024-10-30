@@ -1,5 +1,11 @@
 export interface XRequestInit<B = unknown> {
+    /**
+     * The HTTP method to use.
+     */
     method?: string;
+    /**
+     * The base URL to prepend to the path.
+     */
     baseUrl?: string;
     queryParams?: Record<string, any> | URLSearchParams;
     /**
@@ -62,10 +68,11 @@ export class FetchError extends Error {
 }
 
 /**
- * @return Parsed response data: JSON, Blob, string, raw body, or undefined
+ * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like "/api/:id".
+ * @returns Parsed response data: JSON, Blob, string, raw body, ... or undefined
  */
 export async function xfetch<R = unknown, B = unknown>(
-    path: string,
+    urlLike: string,
     requestInit: XRequestInit<B> = {}
 ): Promise<R> {
     // -- Prepare request
@@ -75,7 +82,7 @@ export async function xfetch<R = unknown, B = unknown>(
         throw error;
     };
     const method = (requestInit.method || "GET").toUpperCase();
-    const url = xfetch.url(path, { ...requestInit, method });
+    const url = xfetch.url(urlLike, { ...requestInit, method });
     const headers = new Headers(requestInit.headers || {});
 
     // -- Prepare body
@@ -222,13 +229,16 @@ xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
 
 export interface MutationInit extends Omit<XRequestInit, "body"> {}
 
+/**
+ * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like "/api/:id".
+ */
 export async function xmutate<R, B>(
     method: string,
-    path: string,
+    urlLike: string,
     body: B,
     mutationInit: MutationInit = {}
 ): Promise<R> {
-    const response = await xfetch<R, B>(path, { ...mutationInit, body, method });
+    const response = await xfetch<R, B>(urlLike, { ...mutationInit, body, method });
     return response;
 }
 
