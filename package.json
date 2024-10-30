@@ -1,6 +1,6 @@
 {
     "name": "@andre-hctulc/xfetch",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "Extended fetch",
     "main": "dist/index.js",
     "scripts": {
