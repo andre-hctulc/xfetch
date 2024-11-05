@@ -54,7 +54,12 @@ export interface XRequestInit<B = unknown> {
 }
 
 export class FetchError extends Error {
-    constructor(method: string, message: string, readonly response: Response | null, readonly origin: any) {
+    constructor(
+        method: string,
+        message: string,
+        readonly response: Response | null,
+        readonly cause: unknown
+    ) {
         super(
             `HTTP Error ${response?.status ? "(" + response.status + ")" : ""}${
                 response ? " at " + method.toUpperCase() + " " + response.url : ""
@@ -68,7 +73,7 @@ export class FetchError extends Error {
 }
 
 /**
- * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like "/api/:id".
+ * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
  * @returns Parsed response data: JSON, Blob, string, raw body, ... or undefined
  */
 export async function xfetch<R = unknown, B = unknown>(
@@ -230,7 +235,7 @@ xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
 export interface MutationInit extends Omit<XRequestInit, "body"> {}
 
 /**
- * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like "/api/:id".
+ * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
  */
 export async function xmutate<R, B>(
     method: string,
