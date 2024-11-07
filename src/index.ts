@@ -54,6 +54,10 @@ export interface XRequestInit<B = unknown> {
          */
         defaultMatcher?: boolean;
     };
+    /**
+     * The signal to abort the request.
+     */
+    abortSignal?: AbortSignal;
 }
 
 export class FetchError extends Error {
@@ -164,6 +168,7 @@ export async function xfetch<R = unknown, B = unknown>(
 
     try {
         response = await fetch(url, {
+            signal: requestInit.abortSignal,
             method: requestInit.method,
             headers: headers,
             body,
