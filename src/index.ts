@@ -7,6 +7,9 @@ export interface XRequestInit<B = unknown> {
      * The base URL to prepend to the path.
      */
     baseUrl?: string;
+    /**
+     * Object values are stringified (undefined values are ignored).
+     */
     queryParams?: Record<string, any> | URLSearchParams;
     /**
      * Setting the _Content-Type_ header will disable default body parsing.
@@ -223,13 +226,21 @@ export async function xfetch<R = unknown, B = unknown>(
 }
 
 xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
-    const params = requestInit.queryParams;
-    const queryStr = params
-        ? params instanceof URLSearchParams
-            ? params.toString()
-            : new URLSearchParams(params).toString()
-        : "";
+    const params = xfetch.queryParams(requestInit.queryParams || {});
+    const queryStr = params.toString();
     return `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
+};
+
+/**
+ * Creates the query string. Object values are stringified (undefined values are ignored).
+ */
+xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
+    if (queryParams instanceof URLSearchParams) return queryParams;
+    const params = new URLSearchParams();
+    for (const key in queryParams) {
+        if (queryParams[key] !== undefined) params.append(key, queryParams[key]);
+    }
+    return params;
 };
 
 export interface MutationInit extends Omit<XRequestInit, "body"> {}
