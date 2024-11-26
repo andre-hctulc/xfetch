@@ -29,7 +29,7 @@ export interface XRequestInit<B = unknown> {
      */
     raw?: boolean;
     /**
-     * In some cases browsers might block redirect. For example after form submission.
+     * In some cases browsers might block redirects. For example after form submission.
      * Set this option to true, to follow every redirect response.
      *  */
     forceFollowRedirects?: boolean;

@@ -3,6 +3,7 @@
     "version": "1.0.9",
     "description": "Extended fetch",
     "main": "dist/index.js",
+    "type": "module",
     "scripts": {
         "build": "tsc",
         "tc": "tsc --noEmit",
