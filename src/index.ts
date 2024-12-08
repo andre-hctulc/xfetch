@@ -240,11 +240,24 @@ xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
  * Creates the query string. Object values are stringified (undefined values are ignored).
  */
 xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
-    if (queryParams instanceof URLSearchParams) return queryParams;
-    const params = new URLSearchParams();
-    for (const key in queryParams) {
-        if (queryParams[key] !== undefined) params.append(key, queryParams[key]);
+    if (queryParams instanceof URLSearchParams) {
+        return queryParams;
     }
+
+    const params = new URLSearchParams();
+
+    for (const key in queryParams) {
+        const value = queryParams[key];
+
+        if (queryParams[key] !== undefined) {
+            if (Array.isArray(value)) {
+                value.forEach((v) => params.append(key, v));
+            } else {
+                params.set(key, queryParams[key]);
+            }
+        }
+    }
+    
     return params;
 };
 
