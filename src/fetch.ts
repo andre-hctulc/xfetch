@@ -1,6 +1,6 @@
 import { XFetchError } from "./error.js";
 
-export interface XRequestInit<B = unknown> {
+export interface XRequestInit {
     /**
      * The HTTP method to use.
      */
@@ -22,7 +22,7 @@ export interface XRequestInit<B = unknown> {
      */
     headers?: HeadersInit;
     onError?: (error: XFetchError) => void;
-    body?: B;
+    body?: any;
     /** Control cookies and Authorization headers */
     credentials?: RequestCredentials;
     /** Control cache behavior */
@@ -70,9 +70,9 @@ export interface XRequestInit<B = unknown> {
  * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
  * @returns Parsed response data: JSON, Blob, string, raw body, ... or undefined
  */
-export async function xfetch<R = unknown, B = unknown>(
+export async function xfetch<R = unknown>(
     urlLike: string,
-    requestInit: XRequestInit<B> = {}
+    requestInit: XRequestInit = {}
 ): Promise<R> {
     // -- Prepare request
 
@@ -222,7 +222,7 @@ export async function xfetch<R = unknown, B = unknown>(
     return data;
 }
 
-xfetch.url = (path: string, requestInit: XRequestInit<any> = {}) => {
+xfetch.url = (path: string, requestInit: XRequestInit = {}) => {
     const params = xfetch.queryParams(requestInit.queryParams || {});
     const queryStr = params.toString();
     return `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
@@ -253,7 +253,7 @@ xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
     return params;
 };
 
-export interface XMutationInit extends Omit<XRequestInit, "body"> {}
+export type XMutationInit = Omit<XRequestInit, "body">;
 
 /**
  * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
@@ -264,7 +264,7 @@ export async function xmutate<R, B>(
     body: B,
     mutationInit: XMutationInit = {}
 ): Promise<R> {
-    const response = await xfetch<R, B>(urlLike, { ...mutationInit, body, method });
+    const response = await xfetch<R>(urlLike, { ...mutationInit, body, method });
     return response;
 }
 
