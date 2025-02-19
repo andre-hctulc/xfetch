@@ -1,5 +1,13 @@
 import { XFetchError } from "./error.js";
 
+/**
+ * `response` - Use the {@link Response} object as result
+ * `raw` - Use the raw response body as result
+ * `auto` - Automatically parse the response body based on the content type of the response
+ * `void` - Return undefined as result. Skips response body parsing.
+ */
+export type XResponseResolution = "response" | "raw" | "auto" | "void";
+
 export interface XRequestInit {
     /**
      * The HTTP method to use.
@@ -31,10 +39,6 @@ export interface XRequestInit {
     cors?: RequestMode;
     priority?: RequestPriority;
     /**
-     * If true, the response will be returned as is, without parsing it.
-     */
-    raw?: boolean;
-    /**
      * In some cases browsers might block redirects. For example after form submission.
      * Set this option to true, to follow every redirect response.
      *  */
@@ -64,16 +68,18 @@ export interface XRequestInit {
      * The signal to abort the request.
      */
     abortSignal?: AbortSignal;
+    /**
+     * How to resolve the response data.
+     * @default "auto"
+     */
+    responseResolution?: XResponseResolution;
 }
 
 /**
  * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
  * @returns Parsed response data: JSON, Blob, string, raw body, ... or undefined
  */
-export async function xfetch<R = unknown>(
-    urlLike: string,
-    requestInit: XRequestInit = {}
-): Promise<R> {
+export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequestInit = {}): Promise<R> {
     // -- Prepare request
 
     const throwErr: (error: XFetchError) => never = (error: XFetchError) => {
@@ -192,15 +198,22 @@ export async function xfetch<R = unknown>(
 
     // -- Parse response
 
-    if (requestInit.raw) return response as unknown as R;
-
     let data: any;
     const resContentType = response.headers.get("content-type");
 
     try {
-        if (!resContentType) data = undefined;
+        if (requestInit.responseResolution === "raw") {
+            data = response.body;
+        } else if (requestInit.responseResolution === "void") {
+            data = undefined;
+        } else if (requestInit.responseResolution === "response") {
+            data = response;
+        }
+        // default to "auto"
         else {
-            if (resContentType.includes("application/json")) {
+            if (!resContentType) {
+                data = response.body;
+            } else if (resContentType.includes("application/json")) {
                 if (requestInit.jsonReviver) {
                     const text = await response.text();
                     data = JSON.parse(text, requestInit.jsonReviver);
@@ -222,6 +235,9 @@ export async function xfetch<R = unknown>(
     return data;
 }
 
+/**
+ * Creates the full URL.
+ */
 xfetch.url = (path: string, requestInit: XRequestInit = {}) => {
     const params = xfetch.queryParams(requestInit.queryParams || {});
     const queryStr = params.toString();
@@ -229,7 +245,7 @@ xfetch.url = (path: string, requestInit: XRequestInit = {}) => {
 };
 
 /**
- * Creates the query string. Object values are stringified (undefined values are ignored).
+ * Creates the query string. Object values are stringified, undefined values are ignored.
  */
 xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
     if (queryParams instanceof URLSearchParams) {
@@ -253,24 +269,13 @@ xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
     return params;
 };
 
-export type XMutationInit = Omit<XRequestInit, "body">;
-
 /**
- * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
+ * Reviver for JSON.parse to convert date strings to Date objects.
+ * Use it for {@link XRequestInit.jsonReviver}.
  */
-export async function xmutate<R, B>(
-    method: string,
-    urlLike: string,
-    body: B,
-    mutationInit: XMutationInit = {}
-): Promise<R> {
-    const response = await xfetch<R>(urlLike, { ...mutationInit, body, method });
-    return response;
-}
-
-xmutate.post = <R, B>(path: string, body: B, mutationInit: Omit<XMutationInit, "method"> = {}) =>
-    xmutate<R, B>("POST", path, body, mutationInit);
-xmutate.put = <R, B>(path: string, body: B, mutationInit: Omit<XMutationInit, "method"> = {}) =>
-    xmutate<R, B>("PUT", path, body, mutationInit);
-xmutate.del = <R, B>(path: string, body: B, mutationInit: Omit<XMutationInit, "method"> = {}) =>
-    xmutate<R, B>("DELETE", path, body, mutationInit);
+xfetch.jsonDateReviver = (key: string, value: any) => {
+    if (typeof value === "string" && /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d+Z$/.test(value)) {
+        return new Date(value);
+    }
+    return value;
+};

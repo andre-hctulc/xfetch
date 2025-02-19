@@ -1,3 +1,3 @@
 export * from "./fetch.js";
-export * from "./util.js";
+export * from "./mutate.js";
 export * from "./error.js";
