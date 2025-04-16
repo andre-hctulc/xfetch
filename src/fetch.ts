@@ -2,11 +2,16 @@ import { XFetchError } from "./error.js";
 
 /**
  * `response` - Use the {@link Response} object as result
+ * 
  * `raw` - Use the raw response body as result
+ * 
  * `auto` - Automatically parse the response body based on the content type of the response
+ * 
  * `void` - Return undefined as result. Skips response body parsing.
+ * 
+ * `blob` - Use the response body as a Blob object
  */
-export type XResponseResolution = "response" | "raw" | "auto" | "void";
+export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob";
 
 export interface XRequestInit {
     /**
@@ -208,6 +213,8 @@ export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequest
             data = undefined;
         } else if (requestInit.responseResolution === "response") {
             data = response;
+        } else if (requestInit.responseResolution === "blob") {
+            data = await response.blob();
         }
         // default to "auto"
         else {
