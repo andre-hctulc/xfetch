@@ -2,13 +2,13 @@ import { XFetchError } from "./error.js";
 
 /**
  * `response` - Use the {@link Response} object as result
- * 
+ *
  * `raw` - Use the raw response body as result
- * 
+ *
  * `auto` - Automatically parse the response body based on the content type of the response
- * 
+ *
  * `void` - Return undefined as result. Skips response body parsing.
- * 
+ *
  * `blob` - Use the response body as a Blob object
  */
 export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob";
@@ -26,6 +26,12 @@ export interface XRequestInit {
      * Response json reviver
      */
     jsonReviver?: (key: string, value: any) => any;
+    /**
+     * Path variables to replace in the URL.
+     * Path variables are defined as `:variable`.
+     * @example "/api/user/:userId"
+     */
+    pathVariables?: Record<string, string>;
     /**
      * Object values are stringified (undefined values are ignored).
      */
@@ -81,7 +87,7 @@ export interface XRequestInit {
 }
 
 /**
- * @param urlLike The URL to fetch. Can be a path or a full URL. Use path variables like _/api/:id_.
+ * @param urlLike The URL to fetch. Can be a path or a full URL.
  * @returns Parsed response data: JSON, Blob, string, raw body, ... or undefined
  */
 export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequestInit = {}): Promise<R> {
@@ -248,7 +254,13 @@ export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequest
 xfetch.url = (path: string, requestInit: XRequestInit = {}) => {
     const params = xfetch.queryParams(requestInit.queryParams || {});
     const queryStr = params.toString();
-    return `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
+    const url = `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
+
+    if (requestInit.pathVariables) {
+        return xfetch.replacePathVariables(url, requestInit.pathVariables);
+    }
+
+    return url;
 };
 
 /**
@@ -285,4 +297,21 @@ xfetch.jsonDateReviver = (key: string, value: any) => {
         return new Date(value);
     }
     return value;
+};
+
+/**
+ * Replaces path variables in the path with the values from the pathVariables object.
+ *
+ * Path variables are defined as `:variable`.
+ *
+ * If the value for a path variable is not found, the variable is left as a placeholder.
+ */
+xfetch.replacePathVariables = (path: string, pathVariables: Record<string, string | undefined>) => {
+    return path.replace(/:([a-zA-Z0-9_]+)/g, (_, variable) => {
+        const value = pathVariables[variable];
+        // If the value is falsy, return the variable as a placeholder
+        if (value === undefined) return `:${variable}`;
+        // stringify the value
+        return value + "";
+    });
 };
