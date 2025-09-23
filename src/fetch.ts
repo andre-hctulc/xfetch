@@ -1,4 +1,5 @@
 import { XFetchError } from "./error.js";
+import { createUrl } from "./system.js";
 
 /**
  * `response` - Use the {@link Response} object as result
@@ -22,6 +23,7 @@ export interface XRequestInit {
      * The base URL to prepend to the path.
      */
     baseUrl?: string;
+    pathPrefix?: string;
     /**
      * Response json reviver
      */
@@ -98,7 +100,7 @@ export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequest
         throw error;
     };
     const method = (requestInit.method || "GET").toUpperCase();
-    const url = xfetch.url(urlLike, { ...requestInit, method });
+    const url = createUrl(urlLike, { ...requestInit, method });
     const headers = new Headers(requestInit.headers || {});
 
     // -- Prepare body
@@ -249,46 +251,6 @@ export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequest
 }
 
 /**
- * Creates the full URL.
- */
-xfetch.url = (path: string, requestInit: XRequestInit = {}) => {
-    const params = xfetch.queryParams(requestInit.queryParams || {});
-    const queryStr = params.toString();
-    const url = `${requestInit.baseUrl || ""}${path}${queryStr ? `?${queryStr}` : ""}`;
-
-    if (requestInit.pathVariables) {
-        return xfetch.replacePathVariables(url, requestInit.pathVariables);
-    }
-
-    return url;
-};
-
-/**
- * Creates the query string. Object values are stringified, undefined values are ignored.
- */
-xfetch.queryParams = (queryParams: Record<string, any> | URLSearchParams) => {
-    if (queryParams instanceof URLSearchParams) {
-        return queryParams;
-    }
-
-    const params = new URLSearchParams();
-
-    for (const key in queryParams) {
-        const value = queryParams[key];
-
-        if (queryParams[key] !== undefined) {
-            if (Array.isArray(value)) {
-                value.forEach((v) => params.append(key, v));
-            } else {
-                params.set(key, queryParams[key]);
-            }
-        }
-    }
-
-    return params;
-};
-
-/**
  * Reviver for JSON.parse to convert date strings to Date objects.
  * Use it for {@link XRequestInit.jsonReviver}.
  */
@@ -297,21 +259,4 @@ xfetch.jsonDateReviver = (key: string, value: any) => {
         return new Date(value);
     }
     return value;
-};
-
-/**
- * Replaces path variables in the path with the values from the pathVariables object.
- *
- * Path variables are defined as `:variable`.
- *
- * If the value for a path variable is not found, the variable is left as a placeholder.
- */
-xfetch.replacePathVariables = (path: string, pathVariables: Record<string, string | undefined>) => {
-    return path.replace(/:([a-zA-Z0-9_]+)/g, (_, variable) => {
-        const value = pathVariables[variable];
-        // If the value is falsy, return the variable as a placeholder
-        if (value === undefined) return `:${variable}`;
-        // stringify the value
-        return value + "";
-    });
 };

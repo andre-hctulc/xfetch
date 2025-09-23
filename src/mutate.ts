@@ -19,5 +19,5 @@ xmutate.post = <B, R>(path: string, body: B, mutationInit: Omit<XMutationInit, "
     xmutate<B, R>("POST", path, body, mutationInit);
 xmutate.put = <B, R>(path: string, body: B, mutationInit: Omit<XMutationInit, "method"> = {}) =>
     xmutate<B, R>("PUT", path, body, mutationInit);
-xmutate.del = <B, R>(path: string, body: B, mutationInit: Omit<XMutationInit, "method"> = {}) =>
-    xmutate<B, R>("DELETE", path, body, mutationInit);
+xmutate.del = <R>(path: string, mutationInit: Omit<XMutationInit, "method"> = {}) =>
+    xmutate<undefined, R>("DELETE", path, undefined, mutationInit);
