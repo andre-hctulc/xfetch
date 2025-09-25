@@ -1,8 +1,8 @@
 import type { XRequestInit } from "./fetch.js";
 
 export function normalizePath(path: string) {
-    if (!path) {
-        return "/";
+    if (!path || path === "/") {
+        return "";
     }
     if (!path.startsWith("/")) {
         return `/${path}`;
