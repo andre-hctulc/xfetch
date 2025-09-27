@@ -32,7 +32,7 @@ export function createUrl(path: string, requestInit: XRequestInit = {}) {
     )}`;
 
     if (requestInit.pathVariables) {
-        _path = replacePathVariables(path, requestInit.pathVariables);
+        _path = replacePathVariables(_path, requestInit.pathVariables);
     }
 
     return `${baseUrl}${_path}${queryStr}`;
