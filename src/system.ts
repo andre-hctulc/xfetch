@@ -31,7 +31,7 @@ export function createUrl(path: string, requestInit: XRequestInit = {}) {
         path
     )}`;
 
-    if (requestInit.pathVariables) {
+    if (requestInit.pathVariables && Object.keys(requestInit.pathVariables).length) {
         _path = replacePathVariables(_path, requestInit.pathVariables);
     }
 
