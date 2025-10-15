@@ -14,6 +14,8 @@ import { createUrl } from "./system.js";
  */
 export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob";
 
+export type ParamFormatter = (key: string, value: any) => string;
+
 export interface XRequestInit {
     /**
      * The HTTP method to use.
@@ -34,10 +36,12 @@ export interface XRequestInit {
      * @example "/api/user/:userId"
      */
     pathVariables?: Record<string, string>;
+    formatPathVariables?: ParamFormatter;
     /**
      * Object values are stringified (undefined values are ignored).
      */
     queryParams?: Record<string, any> | URLSearchParams;
+    formatQueryParams?: ParamFormatter;
     /**
      * Setting the _Content-Type_ header will disable default body parsing.
      */
