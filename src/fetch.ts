@@ -14,7 +14,7 @@ import { createUrl } from "./system.js";
  */
 export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob";
 
-export type ParamFormatter = (key: string, value: any) => string;
+export type ParamFormatter = (key: string, value: any) => any;
 
 export interface XRequestInit {
     /**
