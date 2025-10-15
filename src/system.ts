@@ -74,8 +74,8 @@ function replacePathVariables(path: string, pathVariables: Record<string, string
     return path.replace(/:([a-zA-Z0-9_]+)/g, (_, variable) => {
         const value = pathVariables[variable];
         // If the value is falsy, return the variable as a placeholder
-        if (value === undefined) return `:${variable}`;
+        if (value == null) return `:${variable}`;
         // stringify the value
-        return value + "";
+        return encodeURIComponent(String(value));
     });
 }
