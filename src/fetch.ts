@@ -1,5 +1,5 @@
 import { XFetchError } from "./error.js";
-import { createUrl } from "./system.js";
+import { contentDispositionToFileName, createUrl } from "./system.js";
 
 /**
  * `response` - Use the {@link Response} object as result
@@ -12,7 +12,7 @@ import { createUrl } from "./system.js";
  *
  * `blob` - Use the response body as a Blob object
  */
-export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob";
+export type XResponseResolution = "response" | "raw" | "auto" | "void" | "blob" | "file";
 
 export type ParamFormatter = (key: string, value: any) => any;
 
@@ -227,6 +227,13 @@ export async function xfetch<R = unknown>(urlLike: string, requestInit: XRequest
             data = response;
         } else if (requestInit.responseResolution === "blob") {
             data = await response.blob();
+        } else if (requestInit.responseResolution === "file") {
+            const blob = await response.blob();
+            data = new File(
+                [blob],
+                contentDispositionToFileName(response.headers.get("Content-Disposition")) || "unnamed",
+                { type: blob.type }
+            );
         }
         // default to "auto"
         else {

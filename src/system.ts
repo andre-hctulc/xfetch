@@ -87,3 +87,13 @@ function replacePathVariables(
         return format ? format(variable, value) : encodeURIComponent(String(value));
     });
 }
+
+export function contentDispositionToFileName(contentDisposition: string | null): string | null {
+    if (!contentDisposition) return null;
+
+    const fileNameMatch = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+    if (fileNameMatch && fileNameMatch[1]) {
+        return decodeURIComponent(fileNameMatch[1]);
+    }
+    return null;
+}
